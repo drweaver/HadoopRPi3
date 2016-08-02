@@ -40,13 +40,27 @@ Get updates whenever you like:
 	sudo apt-get update
 
 And any other utilities:
-	sudo apt-get install zip oracle-java7-jdk rpi-update
+	sudo apt-get install zip oracle-java7-jdk rpi-update git
 
 Run rasp-config:
 - enable SSH service
 - set memory split to 16Mb in advanced settings
 - set time and localisation
 - set hostname pi0 to pi3
+
+Setup connection to the internet from head node (pi0)
+
+
+	# copy/paste across /etc/network/interfaces.pi0 (then remove pi0 extension)
+	sudo nano /etc/network/interfaces
+	# copy/paste across /etc/wpa_supplicant/wpa_supplicant.conf <- wlan0 (wifi setup) edit this with your ssid/pwd
+	sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+	
+	# Get a copy of the backup files from git:
+	cd ~
+	git clone https://github.com/drweaver/HadoopRPi3.git
+	
+
 
 02) Network setup
 
@@ -79,6 +93,9 @@ Make sure pi0 is acting as a router. When logged into pi1 (192.168.50.11) try:
 	sudo apt-get update
 	sudo apt-get upgrade
 
+	# on slaves you can now get a copy of the backup files if necessary:
+	cd ~
+	git clone https://github.com/drweaver/HadoopRPi3.git
 
 04) Edit /etc/hosts and put the IP addresses and names in, to make life easy and not depend on having a DNS server:
 	# copy across /etc/hosts file or past at the end:
