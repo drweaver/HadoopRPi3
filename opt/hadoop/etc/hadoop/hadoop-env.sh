@@ -22,6 +22,7 @@
 # remote nodes.
 
 # The java implementation to use.
+#export JAVA_HOME=${JAVA_HOME}
 export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")
 
 # The jsvc implementation to use. Jsvc is required to run secure datanodes
@@ -46,7 +47,7 @@ done
 #export HADOOP_NAMENODE_INIT_HEAPSIZE=""
 
 # Extra Java runtime options.  Empty by default.
-export HADOOP_OPTS="$HADOOP_OPTS -Djava.net.preferIPv4Stack=true"
+export HADOOP_OPTS="$HADOOP_OPTS -XX:-PrintWarnings -Djava.net.preferIPv4Stack=true"
 
 # Command specific options appended to HADOOP_OPTS when specified
 export HADOOP_NAMENODE_OPTS="-Dhadoop.security.logger=${HADOOP_SECURITY_LOGGER:-INFO,RFAS} -Dhdfs.audit.logger=${HDFS_AUDIT_LOGGER:-INFO,NullAppender} $HADOOP_NAMENODE_OPTS"
@@ -88,7 +89,7 @@ export HADOOP_SECURE_DN_LOG_DIR=${HADOOP_LOG_DIR}/${HADOOP_HDFS_USER}
 ###
 
 # The directory where pid files are stored. /tmp by default.
-# NOTE: this should be set to a directory that can only be written to by
+# NOTE: this should be set to a directory that can only be written to by 
 #       the user that will run the hadoop daemons.  Otherwise there is the
 #       potential for a symlink attack.
 export HADOOP_PID_DIR=${HADOOP_PID_DIR}

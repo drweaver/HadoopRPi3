@@ -39,51 +39,74 @@ pi@RPi3101:~ $ cat /proc/version
 Get updates whenever you like:
 	sudo apt-get update
 
-Install the execstack utility, so we can attempt to fix some warnings in the libraries that come with hadoop:
-	sudo apt-get install execstack
+And any other utilities:
+	sudo apt-get install zip oracle-java7-jdk rpi-update
 
-And any other utilities that you want:
-	sudo apt-get install telnet
-	sudo apt-get install dnsutils
+Run rasp-config:
+- enable SSH service
+- set memory split to 16Mb in advanced settings
+- set time and localisation
+- set hostname pi0 to pi3
 
-02) Attach to a network that gives DHCP. I am using RJ45 network cables up to a switch and pfSense router.
-Allocate some static IP addresses from the upstream router. (Otherwise you need to explicitly set the IP address/CIDR)
+02) Network setup
 
-I happened to use:
-	10.49.209.101
-	10.49.209.102
-	10.49.209.103
-	...
+Attach wired network to each Pi. I am using RJ45 network cables up to a switch.
 
-03) Menu, Preference, Raspberry Pi Configuration. Set hostname for each one. (/etc/hostname)
+Setup dhcp on the head node on the eth0 interface:
 
-I used:
-	RPi3101
-	RPi3102
-	RPi3103
+	sudo apt-get install isc-dhcp-server
+	# copy across /etc/dhcp/dhcp.conf file <- setup for dhcp and static assignments
+	# copy across /etc/default/isc-dhcp-server file <- enables dhcp on eth0
+	# copy across /etc/iptables.ipv4.nat <- this allows routing via head node
+	# copy across /etc/network/interfaces (remove pi0 extension)
+	# copy across /etc/wpa_supplicant/wpa_supplicant.conf <- wlan0 (wifi setup) edit with your ssid/pwd
+	sudo service isc-dhcp-server start
+	# might be worth rebooting at this point
+	sudo reboot
+
+On slave nodes:
+	# copy across /etc/network/interfaces (remove pi1-3 extension)
+	sudo reboot
+
+
+03) Make sure routing is working in cluster
+at this point should be able to connect to head node via home wifi (need to check your router for it’s IP address).
+From pi0, can ssh to pi1, pi2, pi3. 
+Make sure pi0 is acting as a router. When logged into pi1 (192.168.50.11) try:
+	ssh pi@[ip address of pi0 connected via wifi to home network]
+	ssh pi@192.168.50.11
+	ping www.google.com
+	sudo apt-get update
+	sudo apt-get upgrade
+
 
 04) Edit /etc/hosts and put the IP addresses and names in, to make life easy and not depend on having a DNS server:
-	10.49.209.101 RPi3101
-	10.49.209.102 RPi3102
-	10.49.209.103 RPi3103
+	# copy across /etc/hosts file or past at the end:
+	192.168.50.10 pi0 pi0.local pi0.lan pi0.cluster
+	192.168.50.11 pi1 pi1.local pi1.lan pi1.cluster
+	192.168.50.12 pi2 pi2.local pi2.lan pi2.cluster
+	192.168.50.13 pi3 pi3.local pi3.lan pi3.cluster
 
-05) In Interfaces, make sure SSH is enabled.
+05) Format the USB stick ready for use:
+	sudo mkfs.ext4 /dev/sda1
 
-06) Under localisation set appropriate local values:
-	Locale: en/US/UF-8
-	Timezone: Australia/Darwin
-	Keyboard: English (US)
-	WiFi Country: Australia
+06) Ensure the usb stick is mounted at boot:
+	# copy across /etc/fstab from back or paste at the bottom:
+	/dev/sda1 /mnt/usb ext4 defaults,user,auto 0 1
 
-07) Use an SSH client (e.g. puTTY from Windows) to SSH to the RPi3, make sure you can login as pi/raspberry
+07) Test you can mount the directory
+	sudo mount /mnt/usb
+	sudo mkdir /mnt/usb/hdfs
 
-08) Change the password for the "pi" username (use the passwd command)
+08) Change the password for the "pi" username (use the passwd command) - if you want to!
 
 09) Check that Java is installed:
-	pi@RPi3101:~ $ java -version
-	java version "1.8.0_65"
-	Java(TM) SE Runtime Environment (build 1.8.0_65-b17)
-	Java HotSpot(TM) Client VM (build 25.65-b01, mixed mode)
+	pi@pi0:~ $ java -version
+	java version "1.7.0_60"
+	Java(TM) SE Runtime Environment (build 1.7.0_60-b19)
+	Java HotSpot(TM) Client VM (build 24.60-b09, mixed mode)
+
+if not there, install from step 1)
 
 10) Create the hadoop group and hduser user (createhduser.sh):
 	sudo addgroup hadoop
@@ -98,6 +121,10 @@ Login to a shell as hduser (e.g. "su hduser") and:
 	ssh-keygen -t rsa -P ""
 	cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
 
+	# now copy this key to all other pis
+	ssh-copy-id pi1
+	# same for pi2 and pi3	
+
 When setting up a cluster, do not create new ones of these on each node.
 Use the ones from the main (1st) node.
 That way hduser on each of the nodes will autologin from the others.
@@ -105,8 +132,9 @@ That way hduser on each of the nodes will autologin from the others.
 Then test that it works (say yes the first time if you are prompted about the new keys):
 	ssh localhost
 to make sure you can login without giving a password.
-	exit ! back to ordinary "hduser" login
-	exit ! back to "pi" root login
+	ssh pi1
+	exit
+	# do the same for pi2 and pi3
 
 12) Download and install the latest stable hadoop (gethadoop.sh):
 	wget http://apache.mirrors.spacedump.net/hadoop/core/stable/hadoop-2.7.2.tar.gz
@@ -119,14 +147,11 @@ to make sure you can login without giving a password.
 Java HotSpot(TM) Client VM warning: You have loaded library /opt/hadoop/lib/native/libhadoop.so.1.0.0 which might have disabled stack guard. The VM will try to fix the stack guard now.
 It's highly recommended that you fix the library with 'execstack -c <libfile>', or link it with '-z noexecstack'.
 
-Try to fix this by running this command from the "pi" account:
-	sudo execstack -c /opt/hadoop/lib/native/libhadoop.so.1.0.0
-
-There is no error from the command, but still the Client VM warning comes out.
-This needs to be sorted some day but does not stop Hadoop from working.
+	# fixed by copying file /opt/hadoop/etc/hadoop/hadoop-env.sh over (copy them all across)
+	# the addition of -XX:-PrintWarnings fixes this in HADOOP_OPTS
 
 14) Configure environment variables for Hadoop stuff by adding to the end of /etc/bash.bashrc
-(e.g. edit with "sudo nano /etc/bash.bashrc")
+(e.g. edit with "sudo nano /etc/bash.bashrc") or just copy across from backup dir
 	export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:jre/bin/java::")
 	export HADOOP_INSTALL=/opt/hadoop
 	export PATH=$PATH:$HADOOP_INSTALL/bin
@@ -138,7 +163,7 @@ This needs to be sorted some day but does not stop Hadoop from working.
 	export HADOOP_HOME=$HADOOP_INSTALL
 
 15) Setup some other Hadoop-specific environment variables in
-	/opt/hadoop/etc/hadoop/hadoop-env.sh
+	/opt/hadoop/etc/hadoop/hadoop-env.sh <- copy across from backup or do the below
 
 See the version on GitHub. Currently the only change to the supplied file is the JAVA_HOME line:
 	export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")
@@ -155,154 +180,16 @@ See the version on GitHub. Currently the only change to the supplied file is the
 
 	exit ! fron hduser
 
-17) In /opt/hadoop/etc/hadoop put the following (see the files in GitHub for up-to-date templates):
-core-site.xml
-
-	<configuration>
-		<property>
-			<name>hadoop.tmp.dir</name>
-			<value>/hdfs/tmp</value>
-		</property>
-		<property>
-			<name>fs.defaultFS</name>
-			<value>hdfs://RPi3101:54310</value>
-		</property>
-	</configuration>
-
-hdfs-site.xml
-
-	<configuration>
-		<property>
-			<name>dfs.replication</name>
-			<value>1</value>
-		</property>
-		<property>
-			<name>dfs.blocksize</name>
-			<value>5242880</value>
-		</property>
-	</configuration>
-*** Note if you are setting up a cluster then set the dfs.replication value to the number of nodes in the cluster.
-
-mapred-site.xml
-
-	<configuration>
-		<property>
-			<name>mapreduce.framework.name</name>
-			<value>yarn</value>
-		</property>
-		<property>
-			<name>mapreduce.map.memory.mb</name>
-			<value>256</value>
-		</property>
-		<property>
-			<name>mapreduce.map.java.opts</name>
-			<value>-Xmx204m</value>
-		</property>
-		<property>
-			<name>mapreduce.map.cpu.vcores</name>
-			<value>2</value>
-		</property>
-		<property>
-			<name>mapreduce.reduce.memory.mb</name>
-			<value>128</value>
-		</property>
-		<property>
-			<name>mapreduce.reduce.java.opts</name>
-			<value>-Xmx102m</value>
-		</property>
-		<property>
-			<name>mapreduce.reduce.cpu.vcores</name>
-			<value>2</value>
-		</property>
-		<property>
-			<name>yarn.app.mapreduce.am.resource.mb</name>
-			<value>128</value>
-		</property>
-		<property>
-			<name>yarn.app.mapreduce.am.command-opts</name>
-			<value>-Xmx102m</value>
-		</property>
-		<property>
-			<name>yarn.app.mapreduce.am.resource.cpu-vcores</name>
-			<value>1</value>
-		</property>
-		<property>
-			<name>mapreduce.job.maps</name>
-			<value>4</value>
-		</property>
-		<property>
-			<name>mapreduce.job.reduces</name>
-			<value>1</value>
-		</property>
-	</configuration>
-*** Note there are 4 maps and 1 reduces - that helps us get just one output file.
-
-yarn-site.xml
-
-	<configuration>
-		<property>
-			<name>yarn.resourcemanager.resource-tracker.address</name>
-			<value>RPi3101:8025</value>
-		</property>
-		<property>
-			<name>yarn.resourcemanager.scheduler.address</name>
-			<value>RPi3101:8035</value>
-		</property>
-		<property>
-			<name>yarn.resourcemanager.address</name>
-			<value>RPi3101:8050</value>
-		</property>
-		<property>
-			<name>yarn.nodemanager.aux-services</name>
-			<value>mapreduce_shuffle</value>
-		</property>
-		<property>
-			<name>yarn.nodemanager.resource.cpu-vcores</name>
-			<value>4</value>
-		</property>
-		<property>
-			<name>yarn.nodemanager.resource.memory-mb</name>
-			<value>768</value>
-		</property>
-		<property>
-			<name>yarn.scheduler.minimum-allocation-mb</name>
-			<value>64</value>
-		</property>
-		<property>
-			<name>yarn.scheduler.maximum-allocation-mb</name>
-			<value>256</value>
-		</property>
-		<property>
-			<name>yarn.scheduler.minimum-allocation-vcores</name>
-			<value>1</value>
-		</property>
-		<property>
-			<name>yarn.scheduler.maximum-allocation-vcores</name>
-			<value>4</value>
-		</property>
-		<property>
-			<name>yarn.nodemanager.vmem-check-enabled</name>
-			<value>true</value>
-		</property>
-		<property>
-			<name>yarn.nodemanager.pmem-check-enabled</name>
-			<value>true</value>
-		</property>
-		<property>
-			<name>yarn.nodemanager.vmem-pmem-ratio</name>
-			<value>2.1</value>
-		</property>
-	</configuration>
-
-slaves
-	localhost
-
-Note: There is nothing to do for "slaves", it should already have "localhost" which is correct for our initial single-node setup
+17) In /opt/hadoop/etc/hadoop put the following (copy across the backup files):
+- core-site.xml
+- hdfs-site.xml  <— set the dfs.replication value to the number of nodes in the cluster.
+- mapred-site.xml
+- yarn-site.xml
+- slaves <- list the nodes in the cluster, should always include head node: pi0
 
 18) Create the HDFS file system (createhdfs.sh):
-	sudo mkdir -p /hdfs/tmp
-	sudo chown hduser:hadoop /hdfs/tmp
-	sudo chmod 750 /hdfs/tmp
+	sudo mkdir -p /mnt/usb/hdfs
+	sudo chown hduser:hadoop /mnt/usb/hdfs
 
 And format HDFS from hduser:
 	hdfs namenode -format
@@ -395,25 +282,26 @@ To expand the network to include other RPi3 systems:
 
 On the 1st (main) node:
 a) Clear out the HDFS filesystem (from hduser on every node):
-	rm -rf /hdfs/tmp/*
+	rm -rf /mnt/usb/hdfs/*
 	hdfs namenode -format
 
 b) Put all the systems into /opt/hadoop/etc/hadoop/slaves 
-	RPi3101
-	RPi3102
-	RPi3103
+	pi0
+	pi1
+	pi2
+	pi3
 
 c) core-site.xml - no change needed, i.e. fs.defaultFS points to the main node.
 
-d) hdfs-site.xml - change replication to 3 (or however many nodes you will have)
+d) hdfs-site.xml - change replication to 4 (or however many nodes you will have)
 <property>
 <name>dfs.replication</name>
-<value>3</value>
+<value>4</value>
 </property>
 
 e) yarn-site.xml - no change needed, i.e. the address parameters all point to the main node.
 
-f) Now you can clone the whole MicroSD card, make sure to set /etc/hostname individually on each clone.
+f) If you didn’t create slaves manually, you can clone the whole pi0 MicroSD card, make sure to set /etc/hostname individually on each clone.
 If you setup each node individually from the single-node instructions,
 then make sure that the items (a) to (e) are done on each node, and
 copy the files from hduser .ssh folder on the 1st node to hduser .ssh folder on the other nodes
@@ -451,4 +339,4 @@ copy the txt files into HDFS
 then run the wordcount
 
 See the status of the cluster, executing jobs and finished jobs with your browser at port 8088 of the main node e.g.:
-http://rpi3101:8088/cluster
+http://[wifi ip address of pi0]:8088/cluster
