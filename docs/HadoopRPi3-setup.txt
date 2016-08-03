@@ -164,8 +164,23 @@ to make sure you can login without giving a password.
 Java HotSpot(TM) Client VM warning: You have loaded library /opt/hadoop/lib/native/libhadoop.so.1.0.0 which might have disabled stack guard. The VM will try to fix the stack guard now.
 It's highly recommended that you fix the library with 'execstack -c <libfile>', or link it with '-z noexecstack'.
 
-	# fixed by copying file /opt/hadoop/etc/hadoop/hadoop-env.sh over (copy them all across)
+	# fixed by copying file /opt/hadoop/etc/hadoop/hadoop-env.sh over (copy all files in this dir across)
 	# the addition of -XX:-PrintWarnings fixes this in HADOOP_OPTS
+
+—- Update: I managed to compiled the native libraries for raspberry pi, delete the files in /opt/hadoop/lib/native, then replace them from backup/github. Test this is working with this command from hduser:
+	hadoop checknative -a
+
+Output should look like (if any are missing try installing the relevant packages with apt-get):
+hduser@pi0:/opt/hadoop/lib $ hadoop checknative -a
+16/08/03 16:50:40 INFO bzip2.Bzip2Factory: Successfully loaded & initialized native-bzip2 library system-native
+16/08/03 16:50:40 INFO zlib.ZlibFactory: Successfully loaded & initialized native-zlib library
+Native library checking:
+hadoop:  true /opt/hadoop/lib/native/libhadoop.so.1.0.0
+zlib:    true /lib/arm-linux-gnueabihf/libz.so.1
+snappy:  true /usr/lib/libsnappy.so.1
+lz4:     true revision:99
+bzip2:   true /lib/arm-linux-gnueabihf/libbz2.so.1
+openssl: true /usr/lib/arm-linux-gnueabihf/libcrypto.so
 
 14) Configure environment variables for Hadoop stuff by adding to the end of /etc/bash.bashrc
 (e.g. edit with "sudo nano /etc/bash.bashrc") or just copy across from backup dir
@@ -182,7 +197,7 @@ It's highly recommended that you fix the library with 'execstack -c <libfile>', 
 15) Setup some other Hadoop-specific environment variables in
 	/opt/hadoop/etc/hadoop/hadoop-env.sh <- copy across from backup or do the below
 
-See the version on GitHub. Currently the only change to the supplied file is the JAVA_HOME line:
+Currently the only change to the supplied file is the JAVA_HOME line:
 	export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")
 
 16) Check that it works by running hadoop from hduser:
