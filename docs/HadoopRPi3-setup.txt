@@ -40,7 +40,7 @@ Get updates whenever you like:
 	sudo apt-get update
 
 And any other utilities:
-	sudo apt-get install zip oracle-java7-jdk rpi-update git
+	sudo apt-get install zip oracle-java7-jdk rpi-update git libssl-dev libsnappy-dev
 
 Run rasp-config:
 - enable SSH service
