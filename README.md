@@ -15,8 +15,9 @@ For step by step Instructions [click here](docs/HadoopRPi3-setup.txt) - Warning,
 | 3 | Stackable case (middle) | [amazon](https://www.amazon.co.uk/Stacking-Raspberry-Vullers-Tech-G-RP-BPC/dp/B00NB1WQZW) | £8.27 |
 | 4	| Micro USB cables | [amazon](https://www.amazon.co.uk/Anker-PowerLine-Micro-Premium-Cable/dp/B013I26P7S) | £3.99 |
 | 1	| Network Switch | [amazon](https://www.amazon.co.uk/NETGEAR-GS105UK-Gigabit-Unmanaged-Ethernet/dp/B0000E5SEQ) | £19.97 |	
+| 4 | Short Cat 5 cable | A Friend | £0.00 |
 
-For the initial setup you'll also need a USB keyboard + HDMI cable + Monitor/TV.
+For the initial setup you'll also need a USB keyboard + HDMI cable + Monitor/TV. An additional network cable is also useful.
 
 ## Here's one I made earlier
 
