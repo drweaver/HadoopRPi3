@@ -3,6 +3,10 @@ Contains scripts, settings files, pre-compiled pi Hadoop libraries and docs to s
 
 For step by step Instructions [click here](docs/HadoopRPi3-setup.txt) - Warning, these were instructions captured as I created this cluster. There may be errors - good luck!
 
+## Here's one I made earlier
+
+![Picture of Pi Cluster](docs/pi_cluster_on_desk.jpg)
+
 ## Hardware List
 
 | # per cluster |	Item |	Link | £ per item |
