@@ -69,7 +69,7 @@ Attach wired network to each Pi. I am using RJ45 network cables up to a switch.
 Setup dhcp on the head node on the eth0 interface:
 
 	sudo apt-get install isc-dhcp-server
-	# copy across /etc/dhcp/dhcp.conf file <- setup for dhcp and static assignments
+	# copy across /etc/dhcp/dhcp.conf file <- setup for dhcp and static assignments YOU MUST EDIT TO SET YOUR OWN mac addresses in here
 	# copy across /etc/default/isc-dhcp-server file <- enables dhcp on eth0
 	# copy across /etc/iptables.ipv4.nat <- this allows routing via head node
 	# copy across /etc/network/interfaces (remove pi0 extension)
