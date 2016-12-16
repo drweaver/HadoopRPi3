@@ -13,7 +13,7 @@ For step by step Instructions [click here](docs/HadoopRPi3-setup.txt)
 | 4	| 64Gb USB stick | [amazon](https://www.amazon.co.uk/SanDisk-Cruzer-Blade-Flash-Drive/dp/B00BX5FOCK) | £12.95 |
 | 1	| Stackable case (outer) | [amazon](https://www.amazon.co.uk/Raspberry-Height-Adjustable-Stackable-Transparent-Vullers/dp/B00NB1WPEE) | £8.32 |
 | 3 | Stackable case (middle) | [amazon](https://www.amazon.co.uk/Stacking-Raspberry-Vullers-Tech-G-RP-BPC/dp/B00NB1WQZW) | £8.27 |
-| 4	| Micro USB cables | [amazon](https://www.amazon.co.uk/AmazonBasics-Cable--Male-Micro-Feet/dp/B00NH13LSM) | £3.99 |
+| 4	| Micro USB cables | [amazon](https://www.amazon.co.uk/Anker-PowerLine-Micro-Premium-Cable/dp/B013I26P7S) | £3.99 |
 | 1	| Network Switch | [amazon](https://www.amazon.co.uk/NETGEAR-GS105UK-Gigabit-Unmanaged-Ethernet/dp/B0000E5SEQ) | £19.97 |	
 
 For the initial setup you'll also need a USB keyboard + HDMI cable + Monitor/TV.
