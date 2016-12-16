@@ -1,11 +1,11 @@
 # HadoopRPi3
-Contains scripts, settings files and docs to setup a Hadoop cluster on a few Raspberry Pi 3 systems in a local network.
+Contains scripts, settings files, pre-compiled pi Hadoop libraries and docs to setup a Hadoop cluster on a few Raspberry Pi 3 systems on a local network.
 
-For step by step Instructions [click here](docs/HadoopRPi3-setup.txt)
+For step by step Instructions [click here](docs/HadoopRPi3-setup.txt) - Warning, these were instructions captured as I created this cluster. There may be errors - good luck!
 
 ## Hardware List
 
-| # per cluster |	Item |	Link | Item Cost |
+| # per cluster |	Item |	Link | £ per item |
 | --- | --- | --- | --- |
 | 4 |	RPi 3 |	[modmypi](https://www.modmypi.com/raspberry-pi/rpi3-model-b/raspberry-pi-3-model-b) |	£32.49 |
 | 4	| 8Gb Micro SD | [amazon](https://www.amazon.co.uk/SanDisk-Imaging-microSDHC-Memory-Adapter/dp/B00MBTKT6S) | £3.68 |
